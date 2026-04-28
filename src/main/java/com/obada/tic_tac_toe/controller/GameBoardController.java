@@ -12,17 +12,20 @@ import com.obada.tic_tac_toe.service.GameBoardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/games")
+@CrossOrigin("*")
 @RequiredArgsConstructor
 public class GameBoardController {
 
     private final GameBoardService gameBoardService;
     private final GameBoardMapper gameBoardMapper;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
 
     @GetMapping("/{id}")
@@ -48,10 +51,15 @@ public class GameBoardController {
          GameBoardDto dto = gameBoardMapper.toDto(
                  gameBoardService.joinGame(requestDto.getId())
          );
+
+        simpMessagingTemplate.convertAndSend(
+                "/radio/game/" + requestDto.getId(),
+                dto
+        );
          return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/status/{id}")
     public ResponseEntity<GameState> getGameState(@PathVariable UUID id){
         return new ResponseEntity<>(gameBoardService.getGameState(id), HttpStatus.OK);
     }

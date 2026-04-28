@@ -42,16 +42,15 @@ public class GameBoardServiceImpl implements GameBoardService {
 
         GameBoard gameBoard = getGameBoard(id);
         if (gameBoard.getGameState() != GameState.IN_PROGRESS) {
-            return gameBoard;
+            throw new RuntimeException("game has ended");
         }
         if ((gameBoard.getIsPlayerOneTurn() && !token.equals(gameBoard.getPlayer1().getToken())) ||
                 (!gameBoard.getIsPlayerOneTurn() && !token.equals(gameBoard.getPlayer2().getToken()))){
-                return gameBoard;
-
+            throw new RuntimeException("invalid token or not your turn");
         }
         char[] newBoard = gameBoard.getBoard().toCharArray();
         if(newBoard[index-1] == 'X' || newBoard[index-1] == 'O') {
-            return gameBoard;
+            throw new RuntimeException("position is already occupied");
         }
         if (gameBoard.getIsXTurn()){
             newBoard[index-1] = 'X';
@@ -84,13 +83,19 @@ public class GameBoardServiceImpl implements GameBoardService {
     }
 
     private char isThereWin(GameBoard gameBoard) {
-        String board = gameBoard.getBoard();
-        char hello = checkRow(board);
-        if(hello != '-') return hello;
-        hello = checkColumn(board);
-        if(hello != '-') return hello;
-        hello = checkDiagonal(board);
-        return hello;
+        char[] b = gameBoard.getBoard().toCharArray();
+        int[][] winConditions = {
+                {0, 1, 2}, {3, 4, 5}, {6, 7, 8}, // rows
+                {0, 3, 6}, {1, 4, 7}, {2, 5, 8}, // columns
+                {0, 4, 8}, {2, 4, 6}             // diagonals
+        };
+
+        for (int[] win : winConditions) {
+            if (b[win[0]] != '-' && b[win[0]] == b[win[1]] && b[win[1]] == b[win[2]]) {
+                return b[win[0]];
+            }
+        }
+        return '-';
     }
 
     private Player getWinner(GameBoard gameBoard) {
@@ -100,49 +105,6 @@ public class GameBoardServiceImpl implements GameBoardService {
         } else {
             return gameBoard.getPlayer1();
         }
-    }
-
-    private char checkRow(String board) {
-        char[] chars = board.toCharArray();
-        if(chars[0] == chars[1] && chars[1] == chars[2] && chars[0] != '-'){
-            return chars[0];
-        }
-        if(chars[3] == chars[4] && chars[4] == chars[5] && chars[3] != '-'){
-            return chars[3];
-        }
-        if(chars[6] == chars[7] && chars[7] == chars[8] && chars[6] != '-'){
-            return chars[6];
-        }
-        return '-';
-    }
-
-    private char checkColumn(String board) {
-
-        char[] chars = board.toCharArray();
-        if(chars[0] == chars[3] && chars[3] == chars[6] && chars[0] != '-'){
-            return chars[0];
-        }
-        if(chars[1] == chars[4] && chars[4] == chars[7] && chars[1] != '-'){
-            return chars[1];
-        }
-        if(chars[2] == chars[5] && chars[5] == chars[8] && chars[5] != '-'){
-            return chars[2];
-        }
-        return '-';
-    }
-
-    private char checkDiagonal(String board) {
-
-        char[] chars = board.toCharArray();
-        if(chars[0] == chars[4] && chars[4] == chars[8] && chars[0] != '-'){
-            return chars[0];
-        }
-        if(chars[2] == chars[4] && chars[4] == chars[6] && chars[2] != '-'){
-            return chars[2];
-        }
-
-        return '-';
-
     }
 
     private void endGame(GameBoard gameBoard) {
