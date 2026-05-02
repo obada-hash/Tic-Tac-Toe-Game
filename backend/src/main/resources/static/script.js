@@ -1,5 +1,6 @@
-const BASE_URL = "";
-const WS_URL = `/game-websocket`;
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const BASE_URL = isLocal ? 'http://localhost:8080' : window.location.origin;
+const WS_URL = `${BASE_URL}/game-websocket`;
 
 let gameId = null;
 let myToken = null;
@@ -20,7 +21,7 @@ function showError(msg) {
 document.getElementById("btn-create").addEventListener("click", async () => {
     showError("");
     try {
-        const res = await fetch(`/api/v1/games/create`, {
+        const res = await fetch(`${BASE_URL}/api/v1/games/create`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ isPlayerOneTurn: true })
@@ -51,7 +52,7 @@ document.getElementById("btn-join").addEventListener("click", async () => {
     }
 
     try {
-        const res = await fetch(`/api/v1/games/join`, {
+        const res = await fetch(`${BASE_URL}/api/v1/games/join`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ id })
